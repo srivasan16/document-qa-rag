@@ -1,0 +1,37 @@
+[
+  {
+    "id": "q1",
+    "question": "What are the main objectives of NITI Aayog?",
+    "expected_document": "Annual Report 2024-25 English_FINAL_LOW RES.pdf",
+    "expected_page": null,
+    "notes": "Fill expected page after checking the source."
+  },
+  {
+    "id": "q2",
+    "question": "What are the major functions or responsibilities described for the Department of Economic Affairs?",
+    "expected_document": "FINAL ANNUAL REPORT ENGLISH with cover.pdf",
+    "expected_page": null,
+    "notes": "Fill expected page after checking the source."
+  },
+  {
+    "id": "q3",
+    "question": "What initiatives are described under the Atal Innovation Mission?",
+    "expected_document": "Annual Report 2024-25 English_FINAL_LOW RES.pdf",
+    "expected_page": null,
+    "notes": "Fill expected page after checking the source."
+  },
+  {
+    "id": "q4",
+    "question": "What is the role of the Department of Investment and Public Asset Management?",
+    "expected_document": "FINAL ANNUAL REPORT ENGLISH with cover.pdf",
+    "expected_page": null,
+    "notes": "Fill expected page after checking the source."
+  },
+  {
+    "id": "q5",
+    "question": "What does the corpus say about an unrelated topic that is not covered by these reports?",
+    "expected_document": null,
+    "expected_page": null,
+    "notes": "Use this as an abstention / 'I don't know' test."
+  }
+]

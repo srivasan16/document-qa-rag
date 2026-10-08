@@ -1,0 +1,234 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is the role of NITI Aayog?",
+      "expected_pages": [
+        17
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          152,
+          21
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          152,
+          21
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      }
+    },
+    {
+      "id": 2,
+      "question": "When was NITI Aayog formed?",
+      "expected_pages": [
+        17
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          21,
+          18
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          21,
+          18
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      }
+    },
+    {
+      "id": 3,
+      "question": "What are the four key areas of NITI Aayog's mandate?",
+      "expected_pages": [
+        21
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          28,
+          21
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.3333333333333333
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          28,
+          21
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.3333333333333333
+      }
+    },
+    {
+      "id": 4,
+      "question": "How does NITI Aayog promote cooperative federalism?",
+      "expected_pages": [
+        20,
+        28,
+        43
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          20,
+          43
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.5
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          20,
+          43
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.5
+      }
+    },
+    {
+      "id": 5,
+      "question": "What kind of advice does NITI Aayog provide to the Centre, States and Union Territories?",
+      "expected_pages": [
+        17
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          20,
+          28
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          20,
+          28
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      }
+    },
+    {
+      "id": 6,
+      "question": "What are the four key areas included in NITI Aayog's mandate?",
+      "expected_pages": [
+        21
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          17,
+          21,
+          28
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.5
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          17,
+          21,
+          28
+        ],
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "reciprocal_rank": 0.5
+      }
+    },
+    {
+      "id": 7,
+      "question": "What partnerships does NITI Aayog encourage with think tanks and research institutions?",
+      "expected_pages": [
+        54
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          54,
+          57,
+          17
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          54,
+          57,
+          17
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      }
+    },
+    {
+      "id": 8,
+      "question": "What is the purpose of NITI-State Workshop Series?",
+      "expected_pages": [
+        43
+      ],
+      "fixed_size": {
+        "retrieved_pages": [
+          43,
+          27,
+          28
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      },
+      "paragraph": {
+        "retrieved_pages": [
+          43,
+          27,
+          28
+        ],
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "reciprocal_rank": 1.0
+      }
+    }
+  ],
+  "overall": {
+    "fixed_size": {
+      "recall_at_1": 0.625,
+      "recall_at_3": 1.0,
+      "mrr": 0.7916666666666666
+    },
+    "paragraph": {
+      "recall_at_1": 0.625,
+      "recall_at_3": 1.0,
+      "mrr": 0.7916666666666666
+    }
+  }
+}

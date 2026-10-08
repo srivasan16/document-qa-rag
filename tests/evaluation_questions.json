@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "question": "What is the role of NITI Aayog?",
+    "expected_pages": [17]
+  },
+  {
+    "id": 2,
+    "question": "When was NITI Aayog formed?",
+    "expected_pages": [17]
+  },
+  {
+    "id": 3,
+    "question": "What are the four key areas of NITI Aayog's mandate?",
+    "expected_pages": [21]
+  },
+  {
+    "id": 4,
+    "question": "How does NITI Aayog promote cooperative federalism?",
+    "expected_pages": [20, 28, 43]
+  },
+  {
+    "id": 5,
+    "question": "What kind of advice does NITI Aayog provide to the Centre, States and Union Territories?",
+    "expected_pages": [17]
+  },
+  {
+    "id": 6,
+    "question": "What are the four key areas included in NITI Aayog's mandate?",
+    "expected_pages": [21]
+  },
+  {
+    "id": 7,
+    "question": "What partnerships does NITI Aayog encourage with think tanks and research institutions?",
+    "expected_pages": [54]
+  },
+  {
+    "id": 8,
+    "question": "What is the purpose of NITI-State Workshop Series?",
+    "expected_pages": [43]
+  }
+]
