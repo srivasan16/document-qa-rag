@@ -2,65 +2,73 @@
 
 A Retrieval-Augmented Generation (RAG) based Document Question Answering system that allows users to ask questions about documents and receive AI-generated answers grounded in retrieved document content.
 
+The project combines PDF text extraction, page-aware document processing, text chunking, embeddings, ChromaDB vector search, and Google Gemini for document-grounded answer generation.
+
 ## 🚀 Features
 
-- PDF/document text extraction
-- Page-number preservation
-- Text chunking
-- Embedding generation
-- ChromaDB vector database
-- Semantic document retrieval
-- Google Gemini-powered answer generation
-- Source/page references in answers
-- FastAPI REST API
-- Interactive Swagger/OpenAPI documentation
-- API-based question answering and testing
+* PDF text extraction
+* Page-number preservation
+* Document chunking
+* Embedding generation
+* ChromaDB vector database
+* Semantic document retrieval
+* Retrieval evaluation
+* Google Gemini-powered answer generation
+* Source/page references
+* FastAPI REST API
+* Interactive Swagger/OpenAPI documentation
+* Automated retrieval test questions and results
 
 ## 🏗️ Architecture
 
 ```text
-PDF Document
-     │
-     ▼
-Document Ingestion
-     │
-     ▼
-Text Extraction + Page Preservation
-     │
-     ▼
-Text Chunking
-     │
-     ▼
-Embeddings
-     │
-     ▼
-ChromaDB Vector Database
-     │
-     │       User Question
-     │             │
-     │             ▼
-     └──────► Semantic Retrieval
-                   │
-                   ▼
-            Retrieved Context
-                   │
-                   ▼
-            Google Gemini
-                   │
-                   ▼
-          Answer + Sources
+                    PDF Document
+                         │
+                         ▼
+                PDF Text Extraction
+                         │
+                         ▼
+              Page Number Preservation
+                         │
+                         ▼
+                  Text Chunking
+                         │
+                         ▼
+                    Embeddings
+                         │
+                         ▼
+                ┌─────────────────┐
+                │    ChromaDB     │
+                │  Vector Store   │
+                └────────┬────────┘
+                         │
+                    User Question
+                         │
+                         ▼
+                Semantic Retrieval
+                         │
+                         ▼
+               Retrieved Documents
+                         │
+                         ▼
+                 Google Gemini
+                         │
+                         ▼
+              Answer + Source Pages
 ```
 
 ## 🛠️ Technology Stack
 
-| Component | Technology |
-|---|---|
-| Programming Language | Python |
-| API Framework | FastAPI |
-| Vector Database | ChromaDB |
-| LLM | Google Gemini |
-| API Documentation | Swagger / OpenAPI |
-| Environment | Python Virtual Environment |
+| Component            | Technology                     |
+| -------------------- | ------------------------------ |
+| Programming Language | Python                         |
+| API Framework        | FastAPI                        |
+| Vector Database      | ChromaDB                       |
+| LLM                  | Google Gemini                  |
+| Embeddings           | Embedding Model                |
+| API Documentation    | Swagger / OpenAPI              |
+| Testing              | Python / JSON-based evaluation |
+| Environment          | Python Virtual Environment     |
 
 ## 📂 Project Structure
 
@@ -68,29 +76,33 @@ ChromaDB Vector Database
 Document QA/
 │
 ├── src/
-│   ├── api.py
+│   ├── build_vector_db.py
+│   ├── chunk_documents.py
+│   ├── evaluate_retrieval.py
+│   ├── extract_pdf.py
 │   ├── generate_answer.py
-│   ├── ingest.py
-│   ├── retrieve.py
-│   └── ...
+│   └── test_retrieval.py
 │
-├── data/
-├── chroma_db/
+├── tests/
+│   ├── evaluation_questions.json
+│   ├── retrieval_questions.json
+│   └── retrieval_results.json
+│
+├── api.py
+├── evaluation_results.txt
 ├── requirements.txt
-├── .env
+├── .env.example
 ├── .gitignore
 └── README.md
 ```
-
-> Update the example `src/` filenames if your actual project uses different names.
 
 ## ⚙️ Installation
 
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR-GITHUB-REPOSITORY-URL>
-cd "Document QA"
+git clone https://github.com/srivasan16/document-qa-rag.git
+cd document-qa-rag
 ```
 
 ### 2. Create a virtual environment
@@ -121,28 +133,96 @@ Create a `.env` file in the project root:
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-**Never upload your API key to GitHub.**
+Never upload your actual API key to GitHub.
 
-Add `.env` to `.gitignore`.
+The repository includes `.env.example` as a safe template:
 
-## 📥 Document Ingestion
-
-Place the required document in the project's data/document directory.
-
-Run the ingestion process:
-
-```powershell
-python src/ingest.py
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-The document is processed into text chunks and stored in ChromaDB for semantic retrieval.
+## 📥 Document Processing Pipeline
 
-## ▶️ Running the API
+The project processes the source PDF through multiple stages.
 
-Start the FastAPI server:
+### 1. Extract PDF text
 
 ```powershell
-uvicorn src.api:app --reload
+python src/extract_pdf.py
+```
+
+This extracts document text while preserving page information.
+
+### 2. Create document chunks
+
+```powershell
+python src/chunk_documents.py
+```
+
+The extracted document content is divided into smaller chunks suitable for embedding and retrieval.
+
+### 3. Build the vector database
+
+```powershell
+python src/build_vector_db.py
+```
+
+The document chunks are converted into embeddings and stored in ChromaDB.
+
+## 🔍 Retrieval Evaluation
+
+The project includes retrieval evaluation scripts and test questions.
+
+Retrieval questions are stored in:
+
+```text
+tests/retrieval_questions.json
+```
+
+Run the retrieval evaluation:
+
+```powershell
+python src/evaluate_retrieval.py
+```
+
+Retrieval results are stored in:
+
+```text
+tests/retrieval_results.json
+```
+
+The project also includes:
+
+```text
+evaluation_results.txt
+```
+
+for evaluation results and analysis.
+
+## 🤖 Generate Answers
+
+The RAG answer-generation pipeline uses the retrieved document context together with Google Gemini.
+
+Run:
+
+```powershell
+python src/generate_answer.py
+```
+
+The system retrieves relevant document content and generates a grounded answer from the retrieved context.
+
+## ▶️ Running the FastAPI Server
+
+The FastAPI application is located in the project root:
+
+```text
+api.py
+```
+
+Start the API with:
+
+```powershell
+uvicorn api:app --reload
 ```
 
 The API will be available at:
@@ -151,7 +231,7 @@ The API will be available at:
 http://127.0.0.1:8000
 ```
 
-## 📚 Swagger Documentation
+## 📚 Swagger API Documentation
 
 Open:
 
@@ -163,7 +243,7 @@ Swagger provides an interactive interface for testing the API.
 
 ## 🔍 Ask a Question
 
-Use the `/ask` endpoint.
+The main question-answering endpoint is:
 
 ```http
 POST /ask
@@ -179,67 +259,145 @@ Example request:
 
 The system:
 
-1. Receives the question.
+1. Receives the user's question.
 2. Searches the ChromaDB vector database.
 3. Retrieves relevant document chunks.
-4. Sends the retrieved context to Gemini.
-5. Generates an answer grounded in the retrieved information.
-6. Returns the answer with source/page information.
+4. Uses the retrieved context as grounding information.
+5. Sends the relevant context and question to Google Gemini.
+6. Generates a document-grounded answer.
+7. Returns the answer with source/page information.
 
 ## 🧪 Testing
 
-The `/ask` endpoint has been tested with multiple questions to verify:
+The RAG pipeline was tested using multiple questions.
 
-- Retrieval quality
-- Answer generation
-- Source/page references
-- API response handling
-- Gemini integration
-- End-to-end RAG functionality
+Testing covers:
+
+* Document retrieval
+* Retrieval relevance
+* Answer generation
+* Source/page references
+* Gemini integration
+* API response handling
+* End-to-end RAG functionality
+
+Test questions are maintained in:
+
+```text
+tests/evaluation_questions.json
+tests/retrieval_questions.json
+```
+
+Retrieval results are maintained in:
+
+```text
+tests/retrieval_results.json
+```
 
 ## 🔐 Security
 
 API credentials are stored using environment variables.
 
-Do not commit sensitive files such as:
+The following sensitive files and local resources are excluded from Git:
 
 ```text
 .env
+chroma_db/
+data/
+*.pdf
+venv/
+__pycache__/
 ```
 
-to GitHub.
+Never commit a real Gemini API key to GitHub.
 
 ## 🎯 Project Objective
 
-The objective is to build a practical Retrieval-Augmented Generation system capable of answering questions from document knowledge instead of relying only on the language model's pre-trained knowledge.
+The objective of this project is to build a practical Retrieval-Augmented Generation system capable of answering questions from document knowledge rather than relying only on the language model's pre-trained knowledge.
 
-This improves:
+The RAG approach provides:
 
-- Document-grounded responses
-- Source traceability
-- Knowledge retrieval
-- Question answering
+* Document-grounded responses
+* Semantic information retrieval
+* Source traceability
+* Page-level references
+* Reduced dependence on model-only knowledge
+
+## 📊 Project Workflow
+
+```text
+PDF
+ │
+ ▼
+Extract Text
+ │
+ ▼
+Preserve Page Information
+ │
+ ▼
+Chunk Documents
+ │
+ ▼
+Generate Embeddings
+ │
+ ▼
+Store in ChromaDB
+ │
+ ▼
+User Question
+ │
+ ▼
+Retrieve Relevant Chunks
+ │
+ ▼
+Gemini
+ │
+ ▼
+Grounded Answer
+ │
+ ▼
+Source/Page References
+```
 
 ## 🔮 Future Improvements
 
 Possible future enhancements include:
 
-- Web-based chat interface
-- Multiple document support
-- Document upload through the API
-- Authentication
-- Conversation history
-- Advanced retrieval/reranking
-- Automated evaluation metrics
-- Cloud deployment
-- Streaming responses
-- Docker support
+* Web-based chat interface
+* Multiple document support
+* Document upload through the API
+* Authentication
+* Conversation history
+* Advanced retrieval/reranking
+* Automated evaluation metrics
+* Cloud deployment
+* Streaming responses
+* Docker support
 
 ## 👨‍💻 Project Status
 
 **Core RAG pipeline: Completed ✅**
 
-The project supports document ingestion, vector retrieval, Gemini-based answer generation, source/page references, and FastAPI-based question answering.
+The project currently supports:
+
+* PDF document processing
+* Page-aware text extraction
+* Document chunking
+* Embeddings
+* ChromaDB vector retrieval
+* Retrieval evaluation
+* Gemini-based answer generation
+* Source/page references
+* FastAPI question answering
+* Swagger API testing
+
+The project is suitable as an educational and internship-level RAG implementation.
+
+## 🔗 Repository
+
+GitHub:
+
+https://github.com/srivasan16/document-qa-rag
 
 ## 📄 License
 
