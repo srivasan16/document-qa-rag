@@ -1,10 +1,15 @@
 import os
+import time
 from pathlib import Path
-
+import time
 import chromadb
+from sentence_transformers import SentenceTransformer
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
 
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
 
 # ============================================================
 # PROJECT CONFIGURATION
@@ -16,12 +21,13 @@ CHROMA_PATH = PROJECT_ROOT / "data" / "chroma_db"
 
 COLLECTION_NAME = "paragraph_chunks"
 
-MODEL_NAME = "gemini-3.5-flash"
-TOP_K = 3
+MODEL_NAME = "gemini-3.8-flash"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+TOP_K = 2
 
 # ============================================================
-# GEMINI API CONFIGURATION
+# GEMINI
 # ============================================================
 
 api_key = os.getenv("GEMINI_API_KEY")
@@ -29,93 +35,81 @@ api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise RuntimeError(
         "GEMINI_API_KEY not found.\n"
-        "Set it in PowerShell before running the program."
+        "Please set your Gemini API key."
     )
 
 client = genai.Client(api_key=api_key)
 
+embedding_model = SentenceTransformer(
+    EMBEDDING_MODEL
+)
 
 # ============================================================
-# CHROMADB CONFIGURATION
+# CHROMADB
 # ============================================================
 
 chroma_client = chromadb.PersistentClient(
     path=str(CHROMA_PATH)
 )
 
-try:
-    collection = chroma_client.get_collection(
-        COLLECTION_NAME
-    )
-except Exception as e:
-    raise RuntimeError(
-        f"Could not find ChromaDB collection '{COLLECTION_NAME}'.\n"
-        f"Make sure Step 4 was completed successfully.\n\n"
-        f"Original error: {e}"
-    )
-
+collection = chroma_client.get_collection(
+    COLLECTION_NAME
+)
 
 # ============================================================
 # RETRIEVAL
 # ============================================================
 
 def retrieve_chunks(question, top_k=TOP_K):
-    """
-    Retrieve the most relevant chunks from ChromaDB.
-    """
+
+    query_embedding = embedding_model.encode(
+        [question],
+        normalize_embeddings=True
+    ).tolist()[0]
 
     results = collection.query(
-        query_texts=[question],
-        n_results=top_k
+        query_embeddings=[query_embedding],
+        n_results=top_k,
+        include=[
+            "documents",
+            "metadatas",
+            "distances"
+        ]
     )
 
-    documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    distances = results["distances"][0]
-
-    return documents, metadatas, distances
-
+    return (
+        results["documents"][0],
+        results["metadatas"][0],
+        results["distances"][0],
+    )
 
 # ============================================================
 # BUILD CONTEXT
 # ============================================================
 
 def build_context(documents, metadatas):
-    """
-    Convert retrieved chunks into a source-grounded context.
-    """
 
-    context_parts = []
+    parts = []
 
-    for i, (document, metadata) in enumerate(
+    for i, (doc, meta) in enumerate(
         zip(documents, metadatas),
         start=1
     ):
 
-        document_name = metadata.get(
-            "document",
-            "Unknown document"
-        )
-
-        page_number = metadata.get(
-            "page",
-            "Unknown page"
-        )
-
-        context_parts.append(
+        parts.append(
             f"""
 SOURCE {i}
 
-Document: {document_name}
-Page: {page_number}
+Document: {meta.get("document")}
+
+Page: {meta.get("page")}
 
 Passage:
-{document}
+{doc}
 """
         )
 
-    return "\n".join(context_parts)
-
+    return "\n".join(parts)
 
 # ============================================================
 # GENERATE ANSWER
@@ -123,148 +117,158 @@ Passage:
 
 def generate_answer(question):
 
-    # --------------------------------------------------------
-    # Step 1: Retrieve relevant chunks
-    # --------------------------------------------------------
+    start = time.perf_counter()
 
     documents, metadatas, distances = retrieve_chunks(
         question,
         TOP_K
     )
 
-    # --------------------------------------------------------
-    # Step 2: Check whether anything was retrieved
-    # --------------------------------------------------------
+    print("\n========== RETRIEVED DOCUMENTS ==========")
 
-    if not documents:
-        return (
-            "I don't know based on the provided documents."
-        )
+    for i, (doc, meta, dist) in enumerate(
+        zip(documents, metadatas, distances),
+        start=1
+    ):
+        print(f"\nChunk {i}")
+        print(f"Document : {meta['document']}")
+        print(f"Page     : {meta['page']}")
+        print(f"Distance : {dist:.4f}")
+        print(doc[:500])
+    
+    print("\n=========================================")
 
-    # --------------------------------------------------------
-    # Step 3: Build context
-    # --------------------------------------------------------
+    if len(documents) == 0:
+        return "I don't know based on the provided documents."
 
     context = build_context(
         documents,
         metadatas
     )
 
-    # --------------------------------------------------------
-    # Step 4: Create strict grounding prompt
-    # --------------------------------------------------------
-
     prompt = f"""
-You are a document question-answering assistant.
+You are an AI assistant answering questions from documents.
 
-Your job is to answer the user's question ONLY using
-the retrieved passages provided below.
+Use ONLY the provided context.
 
-IMPORTANT RULES:
+If the answer exists anywhere in the context,
+summarize it in your own words.
 
-1. Do NOT use outside knowledge.
-2. Do NOT make up facts.
-3. If the retrieved passages do not contain enough
-   information to answer the question, respond exactly:
+If the answer truly does not exist,
+reply exactly:
 
 I don't know based on the provided documents.
 
-4. Keep the answer concise and clear.
-5. Every factual answer MUST include a citation.
-6. The citation must contain:
-   - Document name
-   - Page number
-7. Include the most relevant evidence passage.
-8. Do not cite information that is not present in
-   the retrieved passages.
+Context:
 
-USER QUESTION:
-{question}
-
-RETRIEVED SOURCES:
 {context}
 
-REQUIRED ANSWER FORMAT:
+Question:
+
+{question}
 
 Answer:
-<concise answer>
-
-Source:
-<Document name>, Page <page number>
-
-Evidence:
-<short relevant passage from the retrieved source>
 """
 
-    # --------------------------------------------------------
-    # Step 5: Call Gemini
-    # --------------------------------------------------------
+    response = None
+    MAX_RETRIES = 5
 
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                disable=True
+    for attempt in range(5):
+        try:
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt
             )
-        )
+            
+            print("=" * 80)
+            print(context)
+            print("=" * 80)
+
+            end = time.perf_counter()
+
+            print("=" * 60)
+            print("Prompt Size:", len(prompt))
+            print(f"Response Time: {end - start:.2f} seconds")
+            print("=" * 60)
+            print(response.text)
+
+            return response.text.strip()
+
+        except Exception as e:
+            wait = 2 ** attempt
+            print(f"Retrying in {wait} seconds...")
+            time.sleep(wait)
+
+    if response is None:
+        end = time.perf_counter()
+        print(f"Response Time: {end - start:.2f} seconds")
+        return "Gemini API temporarily unavailable."
+
+    if response.text:
+        end = time.perf_counter()
+        print(f"Response Time: {end - start:.2f} seconds")
+        return response.text.strip()
+
+    end = time.perf_counter()
+    print(f"Response Time: {end - start:.2f} seconds")
+    return "I don't know based on the provided documents."
+
+# ============================================================
+# RAG RESPONSE
+# ============================================================
+
+def get_rag_response(question):
+
+    documents, metadatas, distances = retrieve_chunks(
+        question,
+        TOP_K
     )
 
-    # --------------------------------------------------------
-    # Step 6: Return generated answer
-    # --------------------------------------------------------
+    answer = generate_answer(question)
 
-    if not response.text:
-        return (
-            "I don't know based on the provided documents."
-        )
-
-    return response.text
-
+    return {
+        "question": question,
+        "answer": answer,
+        "contexts": documents,
+        "metadata": metadatas,
+    }
 
 # ============================================================
-# MAIN PROGRAM
+# MAIN
 # ============================================================
 
-if __name__ == "__main__":
+def main():
 
     print("=" * 70)
     print("Government Report Intelligence - Document Q&A")
     print("=" * 70)
 
-    print(f"\nVector database : {CHROMA_PATH}")
+    print(f"\nVector Database : {CHROMA_PATH}")
     print(f"Collection      : {COLLECTION_NAME}")
     print(f"Model           : {MODEL_NAME}")
     print(f"Top-K           : {TOP_K}")
 
-    print("\nSystem ready.")
+    print("\nSystem Ready!")
 
-    question = input(
-        "\nEnter your question: "
-    ).strip()
+    while True:
 
-    if not question:
-        print(
-            "\nI don't know based on the provided documents."
-        )
+        question = input(
+            "\nEnter your question (or type 'exit'): "
+        ).strip()
 
-    else:
+        if question.lower() == "exit":
+            break
 
-        try:
+        if not question:
+            continue
 
-            answer = generate_answer(question)
+        answer = generate_answer(question)
 
-            print("\n" + "=" * 70)
-            print("ANSWER")
-            print("=" * 70)
+        print("\n" + "=" * 70)
+        print("ANSWER")
+        print("=" * 70)
+        print(answer)
+        print("=" * 70)
 
-            print(answer)
-
-            print("=" * 70)
-
-        except Exception as e:
-
-            print("\nERROR")
-            print("=" * 70)
-            print(str(e))
-            print("=" * 70)
+if __name__ == "__main__":
+    main()
